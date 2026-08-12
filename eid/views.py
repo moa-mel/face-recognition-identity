@@ -1,16 +1,19 @@
 from django.shortcuts import render
 
 # Create your views here.
+from io import BytesIO
 from uuid import uuid4
 
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
+from django.http import HttpResponse
 
 from user.models import User
 
 from .models import EIDCard
 from .serializers import EIDCardSerializer
+from .qr import generate_qr
 
 
 class GenerateEIDView(GenericAPIView):
@@ -39,14 +42,15 @@ class GenerateEIDView(GenericAPIView):
                 card_number=f"EID-{uuid4().hex[:12].upper()}",
                 qr_token=str(uuid4())
             )
-        return Response(
-            {
-                "message": "E-ID generated successfully",
-
-                "card": EIDCardSerializer(
-                    card
-                ).data
-            },
-            status=status.HTTP_201_CREATED
-        )
+        
+        # Generate the QR code image from the qr_token
+        qr_image = generate_qr(card.qr_token)
+        
+        # Save the image to a byte stream
+        buffer = BytesIO()
+        qr_image.save(buffer, format="PNG")
+        buffer.seek(0)
+        
+        # Return the image in the response
+        return HttpResponse(buffer, content_type="image/png")
         
