@@ -9,3 +9,6 @@ after installation, if the installed package is not in the requirement.txt, then
 
 To generate EDGE_API_TOKEN
 `python -c "import secrets; print(secrets.token_urlsafe(48))"`
+
+Start the development server using the command:
+`python3 manage.py runserver`

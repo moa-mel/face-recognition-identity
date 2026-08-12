@@ -61,17 +61,16 @@ class EdgeVerifyView(GenericAPIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            user = EdgeUser.objects.get(
-                qr_token=qr_token,
-                is_active=True
-            )
+            edge_user = EdgeUser.objects.get(qr_token=qr_token)
         except EdgeUser.DoesNotExist:
-            return Response({"verified": False, "message": "User is not available on this edge server."},
-                            status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"verified": False, "message": "Invalid e-ID."},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
         try:
             result = verify_face(
-                stored_embedding=user.face_embedding,
+                stored_embedding=edge_user.face_embedding,
                 image_bytes=face_file.read()
             )
         except ValueError as exc:
@@ -84,15 +83,4 @@ class EdgeVerifyView(GenericAPIView):
             return Response({"verified": False, "message": "Face verification failed."},
                             status=status.HTTP_403_FORBIDDEN)
 
-        return Response(
-            {
-                "verified": True,
-                "message": "Identity verified.",
-                "user": {
-                    "id": str(user.id),
-                    "firstName": user.firstName,
-                    "lastName": user.lastName,
-                    "artisan_type": user.artisan_type,
-                }
-            }
-        )
+        return Response({"verified": True, "message": "Identity verified.", "user": {"id": str(edge_user.id), "firstName": edge_user.firstName, "lastName": edge_user.lastName, "artisan_type": edge_user.artisan_type}}, status=status.HTTP_200_OK)
