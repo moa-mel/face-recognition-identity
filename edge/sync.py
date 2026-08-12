@@ -22,6 +22,8 @@ def sync_users():
 
     users = response.json()
 
+    synced_ids = []
+
     for data in users:
 
         EdgeUser.objects.update_or_create(
@@ -36,3 +38,11 @@ def sync_users():
                 "qr_token": data["qr_token"],
             }
         )
+
+        synced_ids.append(data["id"])
+
+    # Users no longer present on the central server are deactivated
+    # locally rather than deleted, so a stale edge device fails closed.
+    EdgeUser.objects.exclude(id__in=synced_ids).update(is_active=False)
+
+    return len(synced_ids)

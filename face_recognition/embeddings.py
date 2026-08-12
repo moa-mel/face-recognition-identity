@@ -37,3 +37,18 @@ class FaceEmbeddingService:
         )
 
         return embedding.tolist()
+
+
+_face_service = None
+
+
+def get_face_service():
+    """
+    Return a process-wide FaceEmbeddingService, loading the model on first use.
+    """
+    global _face_service
+
+    if _face_service is None:
+        _face_service = FaceEmbeddingService()
+
+    return _face_service

@@ -35,6 +35,15 @@ ALLOWED_HOSTS = []
 CENTRAL_API_URL = os.environ.get("CENTRAL_API_URL", "http://127.0.0.1:8000")
 EDGE_API_TOKEN = os.environ.get("EDGE_API_TOKEN")
 
+REST_FRAMEWORK = {
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.ScopedRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "20/min",
+    },
+}
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -46,7 +55,14 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework_simplejwt",
+    "user",
+    "face_recognition",
+    "verification",
+    "eid",
+    "edge",
 ]
+
+AUTH_USER_MODEL = "user.User"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

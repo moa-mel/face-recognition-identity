@@ -1,9 +1,6 @@
 import numpy as np
 
-from .embeddings import FaceEmbeddingService
-
-
-face_service = FaceEmbeddingService()
+from .embeddings import get_face_service
 
 
 def cosine_similarity(a, b):
@@ -32,7 +29,7 @@ def verify_face(
     threshold=0.5
 ):
 
-    new_embedding = face_service.get_embedding(
+    new_embedding = get_face_service().get_embedding(
         image_bytes
     )
 
