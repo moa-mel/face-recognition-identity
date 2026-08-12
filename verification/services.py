@@ -25,8 +25,8 @@ def verify_user(user,face_image,device_id,location):
     )
     VerificationLog.objects.create(
         user=user,
-        device_id=device_id,
-        location=location,
+        device_id=device_id or "",
+        location=location or "",
         result=(
             "SUCCESS"
             if result["matched"]
