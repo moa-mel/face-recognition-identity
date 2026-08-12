@@ -12,3 +12,7 @@ To generate EDGE_API_TOKEN
 
 Start the development server using the command:
 `python3 manage.py runserver`
+
+Run migrations
+`python3 manage.py makemigrations`
+`python3 manage.py migrate`
