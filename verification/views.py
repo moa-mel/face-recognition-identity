@@ -48,12 +48,21 @@ class VerifyIdentityView(GenericAPIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        result = verify_user(
-            user=card.user,
-            face_image=face.read(),
-            device_id=device_id,
-            location=location
-        )
+        try:
+            result = verify_user(
+                user=card.user,
+                face_image=face.read(),
+                device_id=device_id,
+                location=location
+            )
+        except ValueError as exc:
+            return Response(
+                {
+                    "verified": False,
+                    "message": str(exc)
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         if not result["verified"]:
 

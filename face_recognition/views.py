@@ -1,14 +1,14 @@
-from datetime import timedelta, timezone
-from requests import Response
+from datetime import timedelta
+from django.utils import timezone
+from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
 from rest_framework import status
 
-from face_recognition.embeddings import FaceEmbeddingService
+from face_recognition.embeddings import get_face_service
 from face_recognition.models import FaceEnrollment
 
 from rest_framework.parsers import MultiPartParser
 
-face_service = FaceEmbeddingService()
 
 class FaceEnrollmentView(GenericAPIView):
     parser_classes = [MultiPartParser]
@@ -20,9 +20,15 @@ class FaceEnrollmentView(GenericAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        embedding = face_service.get_embedding(
-            face.read()
-        )
+        try:
+            embedding = get_face_service().get_embedding(
+                face.read()
+            )
+        except ValueError as exc:
+            return Response(
+                {"message": str(exc)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         enrollment = FaceEnrollment.objects.create(
             embedding=embedding,

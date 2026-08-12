@@ -1,4 +1,4 @@
-from datetime import timezone
+from django.utils import timezone
 from rest_framework import serializers
 
 from face_recognition.models import FaceEmbedding, FaceEnrollment
@@ -72,6 +72,13 @@ class RegisterSerializer(serializers.ModelSerializer):
             )
 
         except FaceEnrollment.DoesNotExist:
+
+            raise serializers.ValidationError({
+                "enrollment_id":
+                "Invalid or expired face enrollment."
+            })
+
+        if enrollment.expires_at < timezone.now():
 
             raise serializers.ValidationError({
                 "enrollment_id":

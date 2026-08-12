@@ -1,13 +1,10 @@
-from .embeddings import FaceEmbeddingService
+from .embeddings import get_face_service
 from .models import FaceEmbedding
-
-
-face_service = FaceEmbeddingService()
 
 
 def enroll_face(user, image_bytes):
 
-    embedding = face_service.get_embedding(
+    embedding = get_face_service().get_embedding(
         image_bytes
     )
 
