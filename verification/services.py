@@ -4,6 +4,9 @@ from .models import VerificationLog
 
 
 def verify_user(user,face_image,device_id,location):
+    """
+    Verify the identity of a user using their face
+    """
     try:
         face_embedding = FaceEmbedding.objects.get(
             user=user,

@@ -6,6 +6,9 @@ from .models import EdgeUser
 
 
 def sync_users():
+    """
+    Sync users from the central API to the local database.
+    """
     response = requests.get(
         f"{settings.CENTRAL_API_URL}/api/edge/users/",
         headers={

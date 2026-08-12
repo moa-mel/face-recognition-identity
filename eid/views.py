@@ -14,6 +14,9 @@ from .serializers import EIDCardSerializer
 
 
 class GenerateEIDView(GenericAPIView):
+    """
+    Generate a new e-ID for a user.
+    """
     def post(self, request, user_id):
         try:
             user = User.objects.get(

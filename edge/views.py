@@ -12,6 +12,9 @@ from .models import EdgeUser
 
 
 class EdgeVerifyView(GenericAPIView):
+    """
+    Verify the identity of a user using the qr code and face 
+    """
     parser_classes = [MultiPartParser]
     def post(self, request):
         qr_token = request.data.get("qr_token")

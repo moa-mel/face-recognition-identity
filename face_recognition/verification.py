@@ -7,6 +7,9 @@ face_service = FaceEmbeddingService()
 
 
 def cosine_similarity(a, b):
+    """
+    calculate the cosine similarity between two vectors a and b
+    """
     a = np.array(a)
     b = np.array(b)
 
