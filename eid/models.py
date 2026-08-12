@@ -10,7 +10,6 @@ class EIDCard(models.Model):
     card_number = models.CharField(max_length=100, unique=True)
     qr_token = models.CharField(max_length=500, unique=True)
     issued_at = models.DateTimeField(auto_now_add=True)
-    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.card_number

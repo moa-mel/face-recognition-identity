@@ -34,6 +34,5 @@ def sync_users():
                 "artisan_type": data["artisan_type"],
                 "face_embedding": data["face_embedding"],
                 "qr_token": data["qr_token"],
-                "is_active": data["is_active"],
             }
         )

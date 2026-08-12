@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -27,6 +27,13 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# It is best practice to load configuration from environment variables
+# rather than hardcoding them. This makes the application more secure and
+# easier to configure in different environments.
+# The second argument to os.environ.get() is a default value, useful for development.
+
+CENTRAL_API_URL = os.environ.get("CENTRAL_API_URL", "http://127.0.0.1:8000")
+EDGE_API_TOKEN = os.environ.get("EDGE_API_TOKEN")
 
 # Application definition
 
