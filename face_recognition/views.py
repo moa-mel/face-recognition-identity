@@ -24,6 +24,7 @@ class FaceEnrollmentView(GenericAPIView):
             embedding = get_face_service().get_embedding(
                 face.read()
             )
+            
         except ValueError as exc:
             return Response(
                 {"message": str(exc)},

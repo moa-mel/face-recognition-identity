@@ -13,11 +13,14 @@ class RegisterUserView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        serializer.save()
+        user =serializer.save()
 
         return Response(
             {
                 "message": "User registered successfully.",
+                "id": user.id,
+                "first_name": user.firstName,
+                "last_name": user.lastName  
             },
             status=status.HTTP_201_CREATED
         )
