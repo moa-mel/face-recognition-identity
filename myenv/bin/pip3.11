@@ -1,4 +1,4 @@
-#!/Users/olaitanakano/Documents/test_face_recog/myenv/bin/python3.11
+#!/Users/olaitanakano/Documents/test_face_recog/myenv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
