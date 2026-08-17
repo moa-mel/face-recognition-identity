@@ -10,6 +10,7 @@ djangorestframework==3.18.0
 djangorestframework-stubs==3.17.1
 djangorestframework_simplejwt==5.5.1
 flatbuffers==25.12.19
+gunicorn==26.0.0
 humanfriendly==10.0
 idna==3.18
 ImageIO==2.37.4
