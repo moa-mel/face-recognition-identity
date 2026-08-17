@@ -36,6 +36,7 @@ class VerifyIdentityView(GenericAPIView):
                 "user"
             ).get(
                 qr_token=qr_token,
+                is_active=True,
             )
 
         except EIDCard.DoesNotExist:

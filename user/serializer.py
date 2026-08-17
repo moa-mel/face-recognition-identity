@@ -1,18 +1,10 @@
-from django.utils import timezone
 from rest_framework import serializers
 
-from face_recognition.models import FaceEmbedding, FaceEnrollment
-from face_recognition.services import enroll_face
 from user.models import User
 
 class RegisterSerializer(serializers.ModelSerializer):
 
-    enrollment_id = serializers.UUIDField(
-        write_only=True
-    )
-
     class Meta:
-
         model = User
 
         fields = [
@@ -21,7 +13,6 @@ class RegisterSerializer(serializers.ModelSerializer):
             "email",
             "NIN",
             "artisan_type",
-            "enrollment_id",
         ]
 
     def validate_email(self, value):
@@ -60,49 +51,8 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
 
-        enrollment_id = validated_data.pop(
-            "enrollment_id"
-        )
-
-        try:
-
-            enrollment = FaceEnrollment.objects.get(
-                id=enrollment_id,
-                status="COMPLETED"
-            )
-
-        except FaceEnrollment.DoesNotExist:
-
-            raise serializers.ValidationError({
-                "enrollment_id":
-                "Invalid or expired face enrollment."
-            })
-
-        if enrollment.expires_at < timezone.now():
-
-            raise serializers.ValidationError({
-                "enrollment_id":
-                "Invalid or expired face enrollment."
-            })
-
         user = User.objects.create(
             **validated_data
-        )
-
-        FaceEmbedding.objects.create(
-            user=user,
-            embedding=enrollment.embedding,
-            model_name=enrollment.model_name,
-            model_version=enrollment.model_version
-        )
-
-        enrollment.status = "USED"
-        enrollment.used_at = timezone.now()
-        enrollment.save(
-            update_fields=[
-                "status",
-                "used_at"
-            ]
         )
 
         return user

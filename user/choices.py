@@ -10,10 +10,3 @@ RESULT_CHOICES = [
     ("SUCCESS", "Success"),
     ("FAILED", "Failed"),
 ]
-
-STATUS_CHOICES = [
-    ("PENDING", "Pending"),
-    ("COMPLETED", "Completed"),
-    ("USED", "Used"),
-    ("EXPIRED", "Expired"),
-]

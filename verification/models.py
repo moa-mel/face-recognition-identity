@@ -11,5 +11,5 @@ class VerificationLog(models.Model):
     location = models.CharField(max_length=100)
     result = models.CharField(max_length=20, choices=RESULT_CHOICES)
     similarity = models.FloatField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True
-                                      )
+    created_at = models.DateTimeField(auto_now_add=True)
+    

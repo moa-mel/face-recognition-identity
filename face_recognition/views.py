@@ -5,18 +5,36 @@ from rest_framework.generics import GenericAPIView
 from rest_framework import status
 
 from face_recognition.embeddings import get_face_service
-from face_recognition.models import FaceEnrollment
 
 from rest_framework.parsers import MultiPartParser
+
+from face_recognition.models import FaceEmbedding
+from user.models import User
 
 
 class FaceEnrollmentView(GenericAPIView):
     parser_classes = [MultiPartParser]
-    def post(self, request):
+
+    def post(self, request, user_id):
+        
+        try:
+            user = User.objects.get(id=user_id)
+
+        except User.DoesNotExist:
+            return Response(
+                {
+                    "message": "User not found."
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+
         face = request.FILES.get("face")
+
         if not face:
             return Response(
-                {"message": "Face image is required."},
+                {
+                    "message": "face image are required."
+                },
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -24,24 +42,27 @@ class FaceEnrollmentView(GenericAPIView):
             embedding = get_face_service().get_embedding(
                 face.read()
             )
-            
+
         except ValueError as exc:
             return Response(
                 {"message": str(exc)},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        enrollment = FaceEnrollment.objects.create(
-            embedding=embedding,
-            model_name="insightface",
-            model_version="buffalo_l",
-            expires_at=timezone.now() + timedelta(minutes=10)
+        FaceEmbedding.objects.update_or_create(
+            user=user,
+            defaults={
+                "embedding": embedding,
+                "model_name": "insightface",
+                "model_version": "buffalo_l",
+                "is_active": True,
+            }
         )
 
         return Response(
             {
                 "message": "Face enrolled successfully.",
-                "enrollment_id": str(enrollment.id)
+                "user_id": str(user.id)
             },
             status=status.HTTP_201_CREATED
         )

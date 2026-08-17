@@ -50,6 +50,7 @@ class GenerateEIDView(GenericAPIView):
         buffer = BytesIO()
         qr_image.save(buffer, format="PNG")
         buffer.seek(0)
+        print(f"Generated QR code for user {user.firstName} with token {card.qr_token}")
         
         # Return the image in the response
         return HttpResponse(buffer, content_type="image/png")
