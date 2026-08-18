@@ -54,4 +54,30 @@ class GenerateEIDView(GenericAPIView):
         
         # Return the image in the response
         return HttpResponse(buffer, content_type="image/png")
+
+
+class VerifyEIDView(GenericAPIView):
+    """
+    Verify an E-ID using the scanned QR token.
+    """
+    serializer_class = EIDCardSerializer
+
+    def get(self, request, qr_token):
+        try:
+            card = EIDCard.objects.select_related('user').get(
+                qr_token=qr_token,
+                is_active=True
+            )
+        except EIDCard.DoesNotExist:
+            return Response(
+                {"message": "E-ID card not found or is inactive"},
+                status=status.HTTP_404_NOT_FOUND
+            )
         
+        return Response({
+            "verified": True,
+            "message": "E-ID verified successfully",
+            "eid_id": str(card.id),
+            "card_number": card.card_number,
+        })
+

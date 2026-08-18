@@ -7,15 +7,16 @@ from .models import EdgeUser
 
 def sync_users():
     """
-    Sync users from the central API to the local database.
+    Sync fully enrolled users from the central API
+    to the local edge database.
     """
+
     response = requests.get(
-        f"{settings.CENTRAL_API_URL}/api/edge/users/",
+        f"{settings.CENTRAL_API_URL}/api/v1/users/",
         headers={
-            "Authorization":
-            f"Bearer {settings.EDGE_API_TOKEN}"
+            "Authorization": f"Bearer {settings.EDGE_API_TOKEN}"
         },
-        timeout=30
+        timeout=30,
     )
 
     response.raise_for_status()
@@ -25,24 +26,26 @@ def sync_users():
     synced_ids = []
 
     for data in users:
-
         EdgeUser.objects.update_or_create(
-
             id=data["id"],
-
             defaults={
                 "firstName": data["firstName"],
                 "lastName": data["lastName"],
                 "artisan_type": data["artisan_type"],
                 "face_embedding": data["face_embedding"],
                 "qr_token": data["qr_token"],
-            }
+                "is_active": True,
+            },
         )
 
         synced_ids.append(data["id"])
 
-    # Users no longer present on the central server are deactivated
-    # locally rather than deleted, so a stale edge device fails closed.
-    EdgeUser.objects.exclude(id__in=synced_ids).update(is_active=False)
+    # Deactivate users that no longer exist
+    # or are no longer enrolled on the central server.
+    EdgeUser.objects.exclude(
+        id__in=synced_ids
+    ).update(
+        is_active=False
+    )
 
     return len(synced_ids)

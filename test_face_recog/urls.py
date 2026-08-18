@@ -23,5 +23,5 @@ urlpatterns = [
     path("api/v1/", include("face_recognition.urls")),
     path("api/v1/", include("verification.urls")),
     path('api/v1/', include('eid.urls')),
-    path("api/edge/", include("edge.urls")),
+    path("api/v1/", include("edge.urls")),
 ]

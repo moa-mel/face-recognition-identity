@@ -16,3 +16,9 @@ Start the development server using the command:
 Run migrations
 `python3 manage.py makemigrations`
 `python3 manage.py migrate`
+
+to sync users use
+`python manage.py sync_edge_users`
+
+python -m celery -A test_face_recog worker -l info
+python -m celery -A test_face_recog beat -l info

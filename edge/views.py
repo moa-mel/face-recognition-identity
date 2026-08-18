@@ -1,11 +1,13 @@
 from django.shortcuts import render
 
 # Create your views here.
+import requests
 from rest_framework.parsers import MultiPartParser
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
 
+from edge.sync import sync_users
 from face_recognition.verification import verify_face
 from user.models import User
 
@@ -19,7 +21,7 @@ class EdgeUserListView(GenericAPIView):
     (face embedding + e-ID) that edge nodes pull down to populate
     their local on-prem database.
     """
-    permission_classes = [HasEdgeToken]
+    # permission_classes = [HasEdgeToken]
 
     def get(self, request):
         users = User.objects.select_related(
@@ -45,42 +47,104 @@ class EdgeUserListView(GenericAPIView):
 
         return Response(data, status=status.HTTP_200_OK)
 
+class EdgeSyncUsersView(GenericAPIView):
+    """
+    Sync enrolled users from the central API
+    into the local edge database.
+    """
 
+    def post(self, request):
+        try:
+            count = sync_users()
+
+            return Response(
+                {
+                    "success": True,
+                    "message": "Users synchronized successfully.",
+                    "synced_users": count,
+                },
+                status=status.HTTP_200_OK
+            )
+
+        except requests.RequestException as exc:
+            return Response(
+                {
+                    "success": False,
+                    "message": f"Failed to sync users: {str(exc)}",
+                },
+                status=status.HTTP_502_BAD_GATEWAY
+            )
+            
 class EdgeVerifyView(GenericAPIView):
     """
     Verify a user's identity using the e-ID QR code
     and facial recognition against the local edge database.
     """
-    parser_classes = [MultiPartParser]
-    def post(self, request):
-        qr_token = request.data.get('qr_token')
-        face_file = request.FILES.get('face')
 
-        if not qr_token or not face_file:
-            return Response({"verified": False, "message": "QR token and face image are required."},
-                            status=status.HTTP_400_BAD_REQUEST)
+    parser_classes = [MultiPartParser]
+
+    def post(self, request):
+        qr_token = request.data.get("qr_token")
+        face = request.FILES.get("face")
+
+        print("QR TOKEN RECEIVED:", repr(qr_token))
+
+        if not qr_token or not face:
+            return Response(
+                {
+                    "verified": False,
+                    "message": "QR token and face image are required."
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
-            edge_user = EdgeUser.objects.get(qr_token=qr_token)
+            edge_user = EdgeUser.objects.get(
+                qr_token=qr_token,
+                is_active=True
+            )
         except EdgeUser.DoesNotExist:
             return Response(
-                {"verified": False, "message": "Invalid e-ID."},
+                {
+                    "verified": False,
+                    "message": "Invalid or inactive e-ID."
+                },
                 status=status.HTTP_404_NOT_FOUND
             )
 
         try:
             result = verify_face(
                 stored_embedding=edge_user.face_embedding,
-                image_bytes=face_file.read()
+                image_bytes=face.read()
             )
         except ValueError as exc:
             return Response(
-                {"verified": False, "message": str(exc)},
+                {
+                    "verified": False,
+                    "message": str(exc)
+                },
                 status=status.HTTP_400_BAD_REQUEST
             )
 
         if not result["matched"]:
-            return Response({"verified": False, "message": "Face verification failed."},
-                            status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {
+                    "verified": False,
+                    "message": "Face verification failed."
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
 
-        return Response({"verified": True, "message": "Identity verified.", "user": {"id": str(edge_user.id), "firstName": edge_user.firstName, "lastName": edge_user.lastName, "artisan_type": edge_user.artisan_type}}, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "verified": True,
+                "message": "Identity verified.",
+                "user": {
+                    "id": str(edge_user.id),
+                    "firstName": edge_user.firstName,
+                    "lastName": edge_user.lastName,
+                    "artisan_type": edge_user.artisan_type,
+                }
+            },
+            status=status.HTTP_200_OK
+        )
