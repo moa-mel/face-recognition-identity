@@ -27,7 +27,11 @@ SECRET_KEY = "django-insecure-)ov*@+f1u4fb46$v&4%-1d^c(qdn^$@cf3kt9jzr0g-ai+ras*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "face-recognition-identity.onrender.com",
+    "localhost",
+    "127.0.0.1",
+]
 
 # It is best practice to load configuration from environment variables
 # rather than hardcoding them. This makes the application more secure and
