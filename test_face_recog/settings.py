@@ -35,8 +35,8 @@ ALLOWED_HOSTS = [
 
    
 CORS_ALLOWED_ORIGINS = [
-        "http://localhost:8081",
-        "http://localhost:8000", #
+        "http://localhost:8081", #local Frontend
+        "http://localhost:8000", #local backend
         
     ] + [f"http://127.0.0.1:{port}" for port in range(5173, 5180)]
 
@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+     "corsheaders",
     "rest_framework",
     "rest_framework_simplejwt",
     "user",
@@ -75,6 +76,7 @@ INSTALLED_APPS = [
     "verification",
     "eid",
     "edge",
+   
 ]
 
 AUTH_USER_MODEL = "user.User"
@@ -87,6 +89,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware"
 ]
 
 ROOT_URLCONF = "test_face_recog.urls"
