@@ -33,6 +33,15 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
 ]
 
+   
+CORS_ALLOWED_ORIGINS = [
+        "http://localhost:8081",
+        "http://localhost:8000", #
+        
+    ] + [f"http://127.0.0.1:{port}" for port in range(5173, 5180)]
+
+
+
 # It is best practice to load configuration from environment variables
 # rather than hardcoding them. This makes the application more secure and
 # easier to configure in different environments.
