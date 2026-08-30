@@ -62,7 +62,7 @@ class FaceEnrollmentView(GenericAPIView):
         return Response(
             {
                 "message": "Face enrolled successfully.",
-                "user_id": str(user.id)
+                "enrollment_id": str(user.face_embedding.id)
             },
             status=status.HTTP_201_CREATED
         )
