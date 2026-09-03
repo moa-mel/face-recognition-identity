@@ -73,7 +73,6 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "user",
     "face_recognition",
-    "verification",
     "eid",
     "edge",
    
