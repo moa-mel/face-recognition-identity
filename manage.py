@@ -2,7 +2,12 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
-from dotenv import load_dotenv
+
+try:
+    from dotenv import load_dotenv
+except ImportError:  # python-dotenv is only needed for local .env loading
+    def load_dotenv(*args, **kwargs):
+        return False
 
 
 def main():

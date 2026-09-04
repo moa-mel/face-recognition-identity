@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from edge.sync import sync_users
+from eid.models import EIDCard
 from face_recognition.verification import verify_face
 from user.models import User
 
@@ -83,9 +84,60 @@ class EdgeVerifyView(GenericAPIView):
 
     parser_classes = [MultiPartParser]
 
+    @staticmethod
+    def _resolve_identity(qr_token):
+        """
+        Look up the identity behind a scanned QR token.
+
+        Prefers the locally synced ``EdgeUser`` replica, and falls back to the
+        central ``EIDCard`` / ``FaceEmbedding`` tables so verification also works
+        on a single-node deployment (or before the first edge sync has run).
+
+        Returns ``(stored_embedding, user_payload)`` or ``None`` when no active
+        e-ID with an active face embedding matches the token.
+        """
+        try:
+            edge_user = EdgeUser.objects.get(
+                qr_token=qr_token,
+                is_active=True,
+            )
+            return edge_user.face_embedding, {
+                "id": str(edge_user.id),
+                "firstName": edge_user.firstName,
+                "lastName": edge_user.lastName,
+                "artisan_type": edge_user.artisan_type,
+            }
+        except EdgeUser.DoesNotExist:
+            pass
+
+        try:
+            card = EIDCard.objects.select_related(
+                "user", "user__face_embedding"
+            ).get(
+                qr_token=qr_token,
+                is_active=True,
+            )
+        except EIDCard.DoesNotExist:
+            return None
+
+        face_embedding = getattr(card.user, "face_embedding", None)
+
+        if face_embedding is None or not face_embedding.is_active:
+            return None
+
+        return face_embedding.embedding, {
+            "id": str(card.user.id),
+            "firstName": card.user.firstName,
+            "lastName": card.user.lastName,
+            "artisan_type": card.user.artisan_type,
+        }
+
     def post(self, request):
         qr_token = request.data.get("qr_token")
         face = request.FILES.get("face")
+
+        if isinstance(qr_token, str):
+            qr_token = qr_token.strip()
 
         print("QR TOKEN RECEIVED:", repr(qr_token))
 
@@ -98,12 +150,9 @@ class EdgeVerifyView(GenericAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        try:
-            edge_user = EdgeUser.objects.get(
-                qr_token=qr_token,
-                is_active=True
-            )
-        except EdgeUser.DoesNotExist:
+        identity = self._resolve_identity(qr_token)
+
+        if identity is None:
             return Response(
                 {
                     "verified": False,
@@ -112,9 +161,11 @@ class EdgeVerifyView(GenericAPIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
+        stored_embedding, user_payload = identity
+
         try:
             result = verify_face(
-                stored_embedding=edge_user.face_embedding,
+                stored_embedding=stored_embedding,
                 image_bytes=face.read()
             )
         except ValueError as exc:
@@ -139,12 +190,7 @@ class EdgeVerifyView(GenericAPIView):
             {
                 "verified": True,
                 "message": "Identity verified.",
-                "user": {
-                    "id": str(edge_user.id),
-                    "firstName": edge_user.firstName,
-                    "lastName": edge_user.lastName,
-                    "artisan_type": edge_user.artisan_type,
-                }
+                "user": user_payload,
             },
             status=status.HTTP_200_OK
         )
