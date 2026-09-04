@@ -7,10 +7,14 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
 
+import logging
+
 from edge.sync import sync_users
 from eid.models import EIDCard
 from face_recognition.verification import verify_face
 from user.models import User
+
+logger = logging.getLogger(__name__)
 
 from .models import EdgeUser
 from .permissions import HasEdgeToken
@@ -176,6 +180,15 @@ class EdgeVerifyView(GenericAPIView):
                     "message": str(exc)
                 },
                 status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception:
+            logger.exception("Face verification failed unexpectedly")
+            return Response(
+                {
+                    "verified": False,
+                    "message": "Face processing failed on the server."
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
         if not result["matched"]:

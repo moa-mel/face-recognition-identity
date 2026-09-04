@@ -12,8 +12,8 @@ def enroll_face(user, image_bytes):
         user=user,
         defaults={
             "embedding": embedding,
-            "model_name": "insightface",
-            "model_version": "buffalo_l",
+            "model_name": "opencv",
+            "model_version": "sface_2021dec",
         }
     )
 

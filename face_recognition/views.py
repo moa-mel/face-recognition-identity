@@ -54,7 +54,7 @@ class FaceEnrollmentView(GenericAPIView):
             )
 
         except Exception:
-            # Unexpected: model load failure, out-of-memory, corrupt weights...
+            # Unexpected: model download/load failure, corrupt image decode...
             logger.exception("Face embedding extraction failed")
             return Response(
                 {"message": "Face processing failed on the server."},
@@ -65,8 +65,8 @@ class FaceEnrollmentView(GenericAPIView):
             user=user,
             defaults={
                 "embedding": embedding,
-                "model_name": "insightface",
-                "model_version": "buffalo_l",
+                "model_name": "opencv",
+                "model_version": "sface_2021dec",
                 "is_active": True,
             }
         )

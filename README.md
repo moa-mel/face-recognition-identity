@@ -23,6 +23,21 @@ to sync users use
 python -m celery -A test_face_recog worker -l info
 python -m celery -A test_face_recog beat -l info
 
+## Face recognition
+
+Uses OpenCV's built-in models — **YuNet** for detection and **SFace** for a
+128-d embedding (`face_recognition/embeddings.py`). No insightface / onnxruntime
+/ dlib, so it runs in-process in ~250 MB RAM (fits a free dyno).
+
+The two ONNX files (~40 MB total) download from the OpenCV model zoo on first
+use; the Docker build pre-fetches them into the image.
+
+Matching is cosine similarity; `FACE_MATCH_THRESHOLD` (default `0.363`, OpenCV's
+recommended SFace value) decides same/different identity.
+
+> Changing the model changes the embedding format. Any embeddings stored by an
+> earlier version must be re-enrolled.
+
 ## Deploying on Render (Docker)
 
 Render builds the `Dockerfile` directly. Create a **Web Service** from this repo
@@ -35,10 +50,12 @@ web service:
 |-----|-------|
 | `DATABASE_URL` | Internal Database URL from the Render Postgres instance |
 | `SECRET_KEY` | any long random string (currently hardcoded in settings) |
-| `ALLOWED_HOSTS` | your `*.onrender.com` host, if not `face-recognition-identity.onrender.com` |
+| `ALLOWED_HOSTS` | your `*.onrender.com` host (optional; `RENDER_EXTERNAL_HOSTNAME` is picked up automatically) |
 
 `PORT` is provided by Render automatically. Redis / Celery vars are only needed
 if you also run `worker` + `beat` services for edge-node sync.
+
+Optional tuning: `FACE_MATCH_THRESHOLD`, `FACE_DET_SCORE`, `FACE_MAX_IMAGE_SIDE`.
 
 Run a one-off edge sync from the Render shell if needed:
 

@@ -1,3 +1,9 @@
 .env
 winenv/
+myenv/
+.venv/
 db.sqlite3
+models/
+__pycache__/
+*.pyc
+celerybeat-schedule*

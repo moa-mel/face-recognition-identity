@@ -25,3 +25,9 @@ media/
 *.sqlite3
 db.sqlite3
 celerybeat-schedule*
+
+.venv/
+winenv/
+
+# Face models are downloaded during the image build
+models/

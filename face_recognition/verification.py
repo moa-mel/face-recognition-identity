@@ -1,6 +1,12 @@
+import os
+
 import numpy as np
 
 from .embeddings import get_face_service
+
+# SFace: cosine similarity >= 0.363 => same identity (OpenCV's recommended
+# default). Tune via env if needed.
+_MATCH_THRESHOLD = float(os.environ.get("FACE_MATCH_THRESHOLD", "0.363"))
 
 
 def cosine_similarity(a, b):
@@ -26,7 +32,7 @@ def cosine_similarity(a, b):
 def verify_face(
     stored_embedding,
     image_bytes,
-    threshold=0.5
+    threshold=_MATCH_THRESHOLD
 ):
 
     new_embedding = get_face_service().get_embedding(
