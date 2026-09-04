@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 from django.utils import timezone
 from rest_framework.response import Response
@@ -10,6 +11,8 @@ from rest_framework.parsers import MultiPartParser
 
 from face_recognition.models import FaceEmbedding
 from user.models import User
+
+logger = logging.getLogger(__name__)
 
 
 class FaceEnrollmentView(GenericAPIView):
@@ -44,9 +47,18 @@ class FaceEnrollmentView(GenericAPIView):
             )
 
         except ValueError as exc:
+            # Expected validation problems: no face, multiple faces, bad image.
             return Response(
                 {"message": str(exc)},
                 status=status.HTTP_400_BAD_REQUEST
+            )
+
+        except Exception:
+            # Unexpected: model load failure, out-of-memory, corrupt weights...
+            logger.exception("Face embedding extraction failed")
+            return Response(
+                {"message": "Face processing failed on the server."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
         FaceEmbedding.objects.update_or_create(

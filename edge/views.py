@@ -93,8 +93,8 @@ class EdgeVerifyView(GenericAPIView):
         central ``EIDCard`` / ``FaceEmbedding`` tables so verification also works
         on a single-node deployment (or before the first edge sync has run).
 
-        Returns ``(stored_embedding, user_payload)`` or ``None`` when no active
-        e-ID with an active face embedding matches the token.
+        Returns ``(stored_embedding, user_payload, None)`` on success, or
+        ``(None, None, reason)`` where ``reason`` explains the failure.
         """
         try:
             edge_user = EdgeUser.objects.get(
@@ -106,7 +106,7 @@ class EdgeVerifyView(GenericAPIView):
                 "firstName": edge_user.firstName,
                 "lastName": edge_user.lastName,
                 "artisan_type": edge_user.artisan_type,
-            }
+            }, None
         except EdgeUser.DoesNotExist:
             pass
 
@@ -118,19 +118,22 @@ class EdgeVerifyView(GenericAPIView):
                 is_active=True,
             )
         except EIDCard.DoesNotExist:
-            return None
+            return None, None, "Invalid or inactive e-ID."
 
         face_embedding = getattr(card.user, "face_embedding", None)
 
-        if face_embedding is None or not face_embedding.is_active:
-            return None
+        if face_embedding is None:
+            return None, None, "No face has been enrolled for this e-ID."
+
+        if not face_embedding.is_active:
+            return None, None, "The face enrollment for this e-ID is inactive."
 
         return face_embedding.embedding, {
             "id": str(card.user.id),
             "firstName": card.user.firstName,
             "lastName": card.user.lastName,
             "artisan_type": card.user.artisan_type,
-        }
+        }, None
 
     def post(self, request):
         qr_token = request.data.get("qr_token")
@@ -150,18 +153,16 @@ class EdgeVerifyView(GenericAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        identity = self._resolve_identity(qr_token)
+        stored_embedding, user_payload, reason = self._resolve_identity(qr_token)
 
-        if identity is None:
+        if reason is not None:
             return Response(
                 {
                     "verified": False,
-                    "message": "Invalid or inactive e-ID."
+                    "message": reason,
                 },
                 status=status.HTTP_404_NOT_FOUND
             )
-
-        stored_embedding, user_payload = identity
 
         try:
             result = verify_face(
