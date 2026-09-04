@@ -37,12 +37,24 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 
-   
+# Render sets RENDER_EXTERNAL_HOSTNAME to the service's public hostname
+# (e.g. "face-recognition-identity-svim.onrender.com").
+RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+
 CORS_ALLOWED_ORIGINS = [
         "http://localhost:8081", #local Frontend
         "http://localhost:8000", #local backend
-        
+
     ] + [f"http://127.0.0.1:{port}" for port in range(5173, 5180)]
+
+CSRF_TRUSTED_ORIGINS = [
+    f"https://{host}"
+    for host in ALLOWED_HOSTS
+    if host not in ("localhost", "127.0.0.1")
+]
 
 
 
